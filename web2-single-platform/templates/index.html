@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Web 2: Single Platform (Python Flask)</title>
+    <style>
+        body { font-family: sans-serif; max-width: 500px; margin: 40px auto; padding: 20px; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; }
+        input { width: 100%; padding: 8px; box-sizing: border-box; }
+        button { padding: 10px 15px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
+    </style>
+</head>
+<body>
+    <h2>Web 2: Single Platform (Flask)</h2>
+    
+    <div class="form-group">
+        <label>Ukuran (m²):</label>
+        <input id="ukuran" type="number" value="60">
+    </div>
+    <div class="form-group">
+        <label>Usia Bangunan (Tahun):</label>
+        <input id="usia" type="number" value="5">
+    </div>
+    <div class="form-group">
+        <label>Jumlah Kamar:</label>
+        <input id="kamar" type="number" value="3">
+    </div>
+
+    <button onclick="predict()">Hitung Prediksi</button>
+    
+    <div id="result" style="margin-top:20px; font-weight:bold; font-size: 18px;"></div>
+    
+    <div style="margin-top:40px;">
+        <h3>Riwayat Prediksi</h3>
+        <ul id="history-list" style="list-style:none; padding:0;"></ul>
+    </div>
+
+    <script>
+        async function loadHistory() {
+            const res = await fetch('/api/history');
+            const data = await res.json();
+            const list = document.getElementById('history-list');
+            list.innerHTML = '';
+            data.forEach(item => {
+                const li = document.createElement('li');
+                li.style.padding = '8px';
+                li.style.borderBottom = '1px solid #ccc';
+                li.innerText = `Rp ${item.prediksi_harga} Juta (Ukuran: ${item.ukuran}m², Usia: ${item.usia}thn, Kamar: ${item.kamar})`;
+                list.appendChild(li);
+            });
+        }
+
+        async function predict() {
+            const body = {
+                ukuran: Number(document.getElementById('ukuran').value),
+                usia: Number(document.getElementById('usia').value),
+                kamar: Number(document.getElementById('kamar').value)
+            };
+            const res = await fetch('/api/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(body)
+            });
+            const data = await res.json();
+            document.getElementById('result').innerText = `Estimasi Harga: Rp ${data.prediksi_harga_juta} Juta`;
+            loadHistory();
+        }
+
+        // Load history on initial page load
+        window.onload = loadHistory;
+    </script>
+</body>
+</html>
